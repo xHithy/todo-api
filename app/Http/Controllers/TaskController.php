@@ -90,7 +90,7 @@ class TaskController extends ResponseController
 
     public static function deleteTodo($id): JsonResponse
     {
-        if(Task::where('id', $id)->delete()) self::emptySuccess();
+        if(Task::where('id', $id)->delete()) return self::emptySuccess();
 
         // Most likely database related error, throw ERR CODE 500
         return self::errorWithMessage('Something went wrong whilst deleting the task');
