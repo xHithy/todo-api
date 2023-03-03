@@ -58,7 +58,7 @@ class TaskController extends ResponseController
             'created_at' => time()
         ]);
 
-        if($task) return self::createdSuccessWithMessage('task', $task);
+        if($task) return self::successWithMessage('task', $task);
 
         // Most likely database related error, throw ERR CODE 500
         return self::errorWithMessage('Something went wrong whilst creating the task');
@@ -81,15 +81,18 @@ class TaskController extends ResponseController
 
         if($update) {
             $updated_task = Task::where('id', $id)->first();
-            return self::createdSuccessWithMessage('task', $updated_task);
+            return self::successWithMessage('task', $updated_task);
         }
 
         // Most likely database related error, throw ERR CODE 500
         return self::errorWithMessage('Something went wrong whilst updating the task');
     }
 
-    public static function deleteTodo()
+    public static function deleteTodo($id): JsonResponse
     {
+        if(Task::where('id', $id)->delete()) self::emptySuccess();
 
+        // Most likely database related error, throw ERR CODE 500
+        return self::errorWithMessage('Something went wrong whilst deleting the task');
     }
 }

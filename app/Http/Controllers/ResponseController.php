@@ -11,7 +11,14 @@ class ResponseController extends Controller
      * Most common response types are made as reusable functions
      */
 
-    public static function createdSuccessWithMessage($created_title, $created): JsonResponse
+    public static function emptySuccess(): JsonResponse
+    {
+        return response()->json([
+            'code' => 200
+        ]);
+    }
+
+    public static function successWithMessage($created_title, $created): JsonResponse
     {
         return response()->json([
             'code' => 201,
