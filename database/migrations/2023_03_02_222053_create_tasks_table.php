@@ -16,6 +16,7 @@ return new class extends Migration
             $table->string('title');
             $table->text('text');
             $table->integer('created_at');
+            $table->integer('updated_at')->nullable();
         });
     }
 

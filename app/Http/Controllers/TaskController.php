@@ -61,12 +61,31 @@ class TaskController extends ResponseController
         if($task) return self::createdSuccessWithMessage('task', $task);
 
         // Most likely database related error, throw ERR CODE 500
-        return self::errorWithMessage('Something went wrong');
+        return self::errorWithMessage('Something went wrong whilst creating the task');
     }
 
-    public static function updateTodo()
+    public static function updateTodo($id): JsonResponse
     {
+        $validation = Validator::make(request()->all(), [
+            'title' => 'required',
+            'text' => 'required',
+        ]);
 
+        if($validation->fails()) return self::validationFail($validation->messages());
+
+        $update = Task::where('id', $id)->update([
+            'title' => request('title'),
+            'text' => request('text'),
+            'updated_at' => time()
+        ]);
+
+        if($update) {
+            $updated_task = Task::where('id', $id)->first();
+            return self::createdSuccessWithMessage('task', $updated_task);
+        }
+
+        // Most likely database related error, throw ERR CODE 500
+        return self::errorWithMessage('Something went wrong whilst updating the task');
     }
 
     public static function deleteTodo()
