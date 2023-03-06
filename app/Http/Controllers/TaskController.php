@@ -26,7 +26,9 @@ class TaskController extends ResponseController
         */
         if($limit - $offset > 50) $limit = $offset + 50;
 
-        $tasks = Task::offset($offset)->limit($limit)->get();
+        $user_id = session('verified');
+
+        $tasks = Task::where('user_id', $user_id)->offset($offset)->limit($limit)->get();
         if($tasks) {
             return response()->json([
                 'code' => 200,
@@ -53,6 +55,7 @@ class TaskController extends ResponseController
         if($validation->fails()) return self::validationFail($validation->messages());
 
         $task = Task::create([
+            'user_id' => session('verified'),
             'title' => request('title'),
             'text' => request('text'),
             'created_at' => time()
@@ -66,6 +69,8 @@ class TaskController extends ResponseController
 
     public static function updateTodo($id): JsonResponse
     {
+        if(!Task::verifyAuthor($id)) return self::invalidAuthor();
+
         $validation = Validator::make(request()->all(), [
             'title' => 'required',
             'text' => 'required',
@@ -90,6 +95,8 @@ class TaskController extends ResponseController
 
     public static function deleteTodo($id): JsonResponse
     {
+        if(!Task::verifyAuthor($id)) return self::invalidAuthor();
+
         if(Task::where('id', $id)->delete()) return self::emptySuccess();
 
         // Most likely database related error, throw ERR CODE 500

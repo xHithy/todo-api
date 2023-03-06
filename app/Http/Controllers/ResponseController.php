@@ -41,4 +41,20 @@ class ResponseController extends Controller
             'violations' => $violations
         ], 400);
     }
+
+    public static function invalidCredentials(): JsonResponse
+    {
+        return response()->json([
+            'code' => 401,
+            'message' => 'Invalid credentials'
+        ], 401);
+    }
+
+    public static function invalidAuthor(): JsonResponse
+    {
+        return response()->json([
+            'code' => '401',
+            'message' => 'You are not the author of this task'
+        ], 401);
+    }
 }
