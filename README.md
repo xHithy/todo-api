@@ -9,6 +9,3 @@ Simple API endpoints for a todo application using the Laravel framework
 
 ## Run migrations
 > php artisan migrate
-
-## Run seeders
-> php artisan db:seed
