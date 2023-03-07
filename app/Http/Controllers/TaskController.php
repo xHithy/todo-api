@@ -15,7 +15,9 @@ class TaskController extends ResponseController
             'offset' => 'numeric|integer|gte:0'
         ]);
 
-        if($validator->fails()) return self::validationFail($validator->messages());
+        if($validator->fails()) {
+            return self::validationFail($validator->messages());
+        }
 
         request()->input('limit') ? $limit = request()->input('limit') : $limit = 20;
         request()->input('offset') ? $offset = request()->input('offset') : $offset = 0;
@@ -24,11 +26,13 @@ class TaskController extends ResponseController
          Gap between offset and limit cannot exceed 50
          If the rule is ignored, limits the result count to 50
         */
-        if($limit - $offset > 50) $limit = $offset + 50;
+        if($limit - $offset > 50) {
+            $limit = $offset + 50;
+        }
 
         $user_id = session('verified');
 
-        $tasks = Task::where('user_id', $user_id)->offset($offset)->limit($limit)->get();
+        $tasks = Task::query()->where('user_id', $user_id)->offset($offset)->limit($limit)->get();
         if($tasks) {
             return response()->json([
                 'code' => 200,
@@ -54,7 +58,7 @@ class TaskController extends ResponseController
 
         if($validation->fails()) return self::validationFail($validation->messages());
 
-        $task = Task::create([
+        $task = Task::query()->create([
             'user_id' => session('verified'),
             'title' => request('title'),
             'text' => request('text'),
@@ -67,25 +71,32 @@ class TaskController extends ResponseController
         return self::errorWithMessage('Something went wrong whilst creating the task');
     }
 
-    public static function updateTodo($id): JsonResponse
+    public static function updateTodo(): JsonResponse
     {
-        if(!Task::verifyAuthor($id)) return self::invalidAuthor();
-
         $validation = Validator::make(request()->all(), [
+            'id' => 'required|exists:tasks',
             'title' => 'required',
             'text' => 'required',
         ]);
 
-        if($validation->fails()) return self::validationFail($validation->messages());
+        if($validation->fails()) {
+            return self::validationFail($validation->messages());
+        }
 
-        $update = Task::where('id', $id)->update([
+        $id = request('id');
+
+        if(!Task::verifyAuthor($id)) {
+            return self::invalidAuthor();
+        }
+
+        $update = Task::query()->where('id', $id)->update([
             'title' => request('title'),
             'text' => request('text'),
             'updated_at' => time()
         ]);
 
         if($update) {
-            $updated_task = Task::where('id', $id)->first();
+            $updated_task = Task::query()->where('id', $id)->first();
             return self::successWithMessage('task', $updated_task);
         }
 
@@ -93,13 +104,28 @@ class TaskController extends ResponseController
         return self::errorWithMessage('Something went wrong whilst updating the task');
     }
 
-    public static function deleteTodo($id): JsonResponse
+    public static function deleteTodo(): JsonResponse
     {
-        if(!Task::verifyAuthor($id)) return self::invalidAuthor();
+        $validation = Validator::make(request()->all(), [
+            'id' => 'required|exists:tasks',
+        ]);
 
-        if(Task::where('id', $id)->delete()) return self::emptySuccess();
+        if($validation->fails()) {
+            return self::validationFail($validation->messages());
+        }
 
-        // Most likely database related error, throw ERR CODE 500
-        return self::errorWithMessage('Something went wrong whilst deleting the task');
+        $id = request('id');
+
+        $task = Task::query()->where('id', $id);
+
+        if($task->first()) {
+            if(!Task::verifyAuthor($id)) {
+                return self::invalidAuthor();
+            }
+            $task->delete();
+            return self::emptySuccess();
+        } else {
+            return self::errorWithMessage('This task does not exist');
+        }
     }
 }

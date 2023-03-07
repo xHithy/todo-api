@@ -12,13 +12,13 @@ class UserController extends ResponseController
     public static function register(): JsonResponse
     {
         $validator = Validator::make(request()->all(), [
-            'username' => 'required|min:3|unique:users',
+            'username' => 'required|min:3|alpha_dash|unique:users',
             'password' => 'required|min:8',
         ]);
 
         if($validator->fails()) return self::validationFail($validator->messages());
 
-        $user = User::create([
+        $user = User::query()->create([
             'username' => request('username'),
             'password' => Hash::make(request('password')),
             'created_at' => time(),
@@ -26,7 +26,7 @@ class UserController extends ResponseController
         ]);
 
         if($user) {
-            session(['verified' => $user['id'] ]);
+            session(['verified' => (int)$user['id'] ]);
             return self::successWithMessage('message','Registration successful');
         }
 
@@ -43,11 +43,11 @@ class UserController extends ResponseController
 
         if($validator->fails()) return self::validationFail($validator->messages());
 
-        $user = User::where('username', request('username'))->first();
+        $user = User::query()->where('username', request('username'))->first();
 
         if($user) {
             if(Hash::check(request('password'), $user['password'])) {
-                session(['verified' => $user['id'] ]);
+                session(['verified' => (int)$user['id'] ]);
                 return self::successWithMessage('message', 'Login successful');
             }
             return self::invalidCredentials();

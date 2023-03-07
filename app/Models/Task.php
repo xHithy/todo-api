@@ -23,10 +23,10 @@ class Task extends Model
 
     public static function verifyAuthor($id): bool
     {
-        $task = Task::where('id', $id)->first();
+        $task = Task::query()->where('id', $id)->first();
         $task_author = $task['user_id'];
 
-        if($task_author == session('verified')) {
+        if($task_author === session('verified')) {
             return true;
         } else {
             return false;
