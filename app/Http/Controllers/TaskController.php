@@ -89,19 +89,15 @@ class TaskController extends ResponseController
             return self::invalidAuthor();
         }
 
-        $update = Task::query()->where('id', $id)->update([
+        Task::query()->where('id', $id)->update([
             'title' => request('title'),
             'text' => request('text'),
             'updated_at' => time()
         ]);
 
-        if($update) {
-            $updated_task = Task::query()->where('id', $id)->first();
-            return self::successWithMessage('task', $updated_task);
-        }
+        $updated_task = Task::query()->where('id', $id)->first();
 
-        // Most likely database related error, throw ERR CODE 500
-        return self::errorWithMessage('Something went wrong whilst updating the task');
+        return self::successWithMessage('task', $updated_task);
     }
 
     public static function deleteTodo(): JsonResponse
@@ -116,16 +112,12 @@ class TaskController extends ResponseController
 
         $id = request('id');
 
-        $task = Task::query()->where('id', $id);
-
-        if($task->first()) {
-            if(!Task::verifyAuthor($id)) {
-                return self::invalidAuthor();
-            }
-            $task->delete();
-            return self::emptySuccess();
-        } else {
-            return self::errorWithMessage('This task does not exist');
+        if(!Task::verifyAuthor($id)) {
+            return self::invalidAuthor();
         }
+
+        Task::query()->where('id', $id)->delete();
+
+        return self::emptySuccess();
     }
 }
